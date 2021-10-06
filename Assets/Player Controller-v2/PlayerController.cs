@@ -20,6 +20,8 @@ public class PlayerController : MonoBehaviour
     private bool p_canInstDB = true; // used in falling respawn
 
     [Header("Camera")]
+    public GameObject canvas;
+    private Image[] images;
     new public GameObject camera;
     public float _mouseXSpeed = 1f;
     public float _mouseYSpeed = 1f;
@@ -30,7 +32,6 @@ public class PlayerController : MonoBehaviour
     private Quaternion c_Rotation;
 
     [Header("Respawn")]
-    public GameObject canvas;
     private Image r_fog;
     private bool r_respawning;
     private bool r_respawnOnce;
@@ -39,11 +40,24 @@ public class PlayerController : MonoBehaviour
     public TextMesh ammoDisplay;
     public int ammo;
 
+    [Header("Health & Damage")]
+    public Slider healthBar;
+    private Image d_flash;
+    private bool canTakeDamage = true;
+    private bool takeDamage = false;
+    public int health = 100;
+
+    public bool TakeDamage { set { takeDamage = value; } }
+    public int Ammo { set { ammo = value; } get { return ammo; } }
 
     // Start is called before the first frame update
     void Start()
     {
+        canTakeDamage = true;
+        takeDamage = false;
         Cursor.lockState = CursorLockMode.Locked;
+
+        images = canvas.GetComponentsInChildren<Image>();
 
         //save players origin as spawn
         p_playerSpawn = this.transform.position;
@@ -57,21 +71,41 @@ public class PlayerController : MonoBehaviour
 
         //initialization for respawn
         canvas.SetActive(true);
-        r_fog = canvas.GetComponentInChildren<Image>();
+        r_fog = images[0];
         r_respawning = true;
         r_respawnOnce = false;
         //fog.canvasRenderer.SetAlpha(0);
 
+        d_flash = images[1];
+        d_flash.CrossFadeAlpha(0, .01f, true);
+        
         ammo = 6;
     }
     // Update is called once per frames
     void Update()
     {
+        if (health <= 0)
+        r_respawning = true;
+
         if (ammo < 0) ammo = 0;
         ammoDisplay.text = ammo.ToString();
 
         if(Input.GetMouseButtonDown(0))
         { ammo--; }
+
+        if (takeDamage)
+        {
+            if (canTakeDamage)
+            {
+                Debug.Log("Catch");
+                canTakeDamage = false;
+                d_flash.CrossFadeAlpha(.5f, .3f, true);
+                health -= 10;
+                StartCoroutine(FlashDamage());
+            }
+        }
+
+        healthBar.value = health;
 
         //move the player
         MoveController();
@@ -99,7 +133,7 @@ public class PlayerController : MonoBehaviour
             SaveSpawn();
         }
     }
-    private void OnCollisionEnter(Collision collision)
+    private void OnCollisionStay(Collision collision)
     {
         if (collision.collider.CompareTag("Ground"))
         { 
@@ -194,10 +228,18 @@ public class PlayerController : MonoBehaviour
 
         //reposition
         gameObject.transform.position = p_playerSpawn;
+        health = 100;
 
         //remove respawn fog
         r_fog.CrossFadeAlpha(0, .7f, false);
         r_respawning = false;
         r_respawnOnce = false; // set once to false to respawn once again
+    }
+    IEnumerator FlashDamage()
+    {
+        yield return new WaitForSeconds(.3f);
+        d_flash.CrossFadeAlpha(0, .5f, true);
+        yield return new WaitForSeconds(1);
+        canTakeDamage = true;
     }
 }

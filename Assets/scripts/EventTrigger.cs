@@ -4,17 +4,25 @@ using UnityEngine;
 
 public class EventTrigger : MonoBehaviour
 {
-    public GameObject EventMarker;
+    public GameObject eventMarker;
+    public GameObject player;
     void Start()
     {
-        EventMarker.SetActive(false);
+        eventMarker.SetActive(false);
     }
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerStay(Collider other)
     {
-        EventMarker.SetActive(true);
+        if (player.GetComponent<PlayerController>().Ammo < 6)
+        {
+            eventMarker.SetActive(true);
+        }
+        if (player.GetComponent<PlayerController>().Ammo == 6)
+        {
+            eventMarker.SetActive(false);
+        }
     }
     private void OnTriggerExit(Collider other)
     {
-        EventMarker.SetActive(false);
+        eventMarker.SetActive(false);
     }
 }
