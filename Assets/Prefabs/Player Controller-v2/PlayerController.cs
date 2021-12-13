@@ -36,10 +36,6 @@ public class PlayerController : MonoBehaviour
     private bool r_respawning;
     private bool r_respawnOnce;
 
-    [Header("Gun")]
-    public TextMesh ammoDisplay;
-    public int ammo;
-
     [Header("Health & Damage")]
     public Slider healthBar;
     private Image d_flash;
@@ -48,14 +44,12 @@ public class PlayerController : MonoBehaviour
     public int health = 100;
 
     public bool TakeDamage { set { takeDamage = value; } }
-    public int Ammo { set { ammo = value; } get { return ammo; } }
 
     // Start is called before the first frame update
     void Start()
     {
         canTakeDamage = true;
         takeDamage = false;
-        Cursor.lockState = CursorLockMode.Locked;
 
         images = canvas.GetComponentsInChildren<Image>();
 
@@ -79,19 +73,13 @@ public class PlayerController : MonoBehaviour
         d_flash = images[1];
         d_flash.CrossFadeAlpha(0, .01f, true);
         
-        ammo = 6;
+        
     }
     // Update is called once per frames
     void Update()
     {
         if (health <= 0)
         r_respawning = true;
-
-        if (ammo < 0) ammo = 0;
-        ammoDisplay.text = ammo.ToString();
-
-        if(Input.GetMouseButtonDown(0))
-        { ammo--; }
 
         if (takeDamage)
         {
